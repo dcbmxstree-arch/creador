@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generador de Compendio · DeepSeek</title>
+
+    <!-- Cargar pdf.js desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+    </script>
+
+    <style>
+        /* ---- Reset y estilo global ---- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #f6f9fc;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            padding: 2rem 1rem;
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 20, 40, 0.08);
+            padding: 2rem 2.5rem;
+            transition: all 0.2s;
+        }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        h1 small {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #64748b;
+            margin-left: 0.5rem;
+        }
+        .subtitle {
+            color: #475569;
+            margin-bottom: 2rem;
+            border-left: 4px solid #3b82f6;
+            padding-left: 1rem;
+            font-size: 1.05rem;
+        }
+
+        /* ---- Área de configuración ---- */
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0 2rem 0;
+        }
+        .file-box {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 1rem;
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+            transition: 0.2s;
+        }
+        .file-box:hover {
+            border-color: #94a3b8;
+            background: #f1f5f9;
+        }
+        .file-box label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 0.95rem;
+        }
+        .file-box .file-info {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 0.3rem;
+            word-break: break-all;
+        }
+        .file-box input[type="file"] {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .file-box .status-badge {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.15rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #e2e8f0;
+            color: #475569;
+        }
+        .file-box .status-badge.loaded {
+            background: #bbf7d0;
+            color: #166534;
+        }
+
+        .extra-options {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            background: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+        }
+        .extra-options label {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .extra-options input,
+        .extra-options select {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            background: white;
+            font-size: 0.95rem;
+        }
+        .extra-options .model-select {
+            margin-left: auto;
+        }
+
+        textarea#customPrompt {
+            width: 100%;
+            min-height: 70px;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+            margin-top: 0.5rem;
+            background: #fafcff;
+        }
+
+        /* ---- Botones y progreso ---- */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0 1rem 0;
+            align-items: center;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.7rem 2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+            box-shadow: none;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .btn-success {
+            background: #22c55e;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+        }
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        #progressBar {
+            flex: 1;
+            min-width: 150px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
+        #progressBar .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        #statusMsg {
+            font-size: 0.9rem;
+            color: #475569;
+            margin-left: 0.5rem;
+        }
+
+        /* ---- Resultado ---- */
+        .result-area {
+            margin-top: 2.5rem;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 1.5rem;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .result-header h2 {
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+        .result-header .btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        #resultContainer {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 0.5rem;
+            min-height: 400px;
+            position: relative;
+            transition: 0.2s;
+        }
+        #resultContainer iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 0.5rem;
+            background: white;
+        }
+        #resultContainer .placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        #resultContainer .placeholder svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 1rem;
+            fill: #cbd5e1;
+        }
+
+        .error-msg {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.8rem 1.2rem;
+            border-radius: 0.75rem;
+            margin-top: 0.5rem;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 760px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+            .extra-options {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .extra-options .model-select {
+                margin-left: 0;
+            }
+            .container {
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.8rem;
+                flex-wrap: wrap;
+            }
+        }
+        @media (max-width: 480px) {
+            .actions {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>
+                📚 Generador de Compendios
+                <small>con DeepSeek V4 Pro</small>
+            </h1>
+            <div class="subtitle">
+                Sube el sílabo y los conocimientos previos, y obtén una página web completa con teoría,
+                ejercicios resueltos (3 niveles), propuestos y diagnóstico.
+            </div>
+        </header>
+
+        <!-- Configuración -->
+        <div class="config-grid">
+            <!-- Sílabo -->
+            <div class="file-box" id="syllabusBox">
+                <label for="syllabusFile">📘 Sílabo de la asignatura (PDF)</label>
+                <input type="file" id="syllabusFile" accept=".pdf" />
+                <div class="file-info" id="syllabusInfo">Ningún archivo seleccionado</div>
+                <span class="status-badge" id="syllabusStatus">Sin cargar</span>
+            </div>
+
+            <!-- Conocimientos previos -->
+            <div class="file-box" id="priorBox">
+                <label for="priorFile">📄 Conocimientos previos (PDF)</label>
+                <input type="file" id="priorFile" accept=".pdf" />
+                <div class="file-info" id="priorInfo">Ningún archivo seleccionado</div>
+                <span class="status-badge" id="priorStatus">Sin cargar</span>
+            </div>
+
+            <!-- Opciones extra -->
+            <div class="extra-options">
+                <label>
+                    🧠 Modelo
+                    <select id="modelSelect">
+                        <option value="deepseek-v4-pro" selected>DeepSeek V4 Pro (más potente)</option>
+                        <option value="deepseek-v4-flash">DeepSeek V4 Flash (económico)</option>
+                    </select>
+                </label>
+                <label>
+                    ⚙️ Temperatura
+                    <input type="number" id="temperatureInput" value="0.7" step="0.1" min="0" max="1" />
+                </label>
+                <label style="margin-left: auto;">
+                    <input type="checkbox" id="includeDiagnostic" checked />
+                    Incluir diagnóstico
+                </label>
+            </div>
+
+            <!-- Prompt personalizado -->
+            <div style="grid-column: 1 / -1;">
+                <label for="customPrompt" style="font-weight: 500;">✏️ Instrucciones adicionales (opcional)</label>
+                <textarea id="customPrompt" placeholder="Ejemplo: Enfócate en aplicaciones prácticas, usa ejemplos de ingeniería..."></textarea>
+            </div>
+        </div>
+
+        <!-- Botones y progreso -->
+        <div class="actions">
+            <button class="btn" id="generateBtn">🚀 Generar Compendio</button>
+            <button class="btn btn-secondary" id="clearBtn">🗑️ Limpiar</button>
+            <div id="progressBar"><div class="fill" id="progressFill"></div></div>
+            <span id="statusMsg">Listo</span>
+        </div>
+
+        <!-- Área de resultados -->
+        <div class="result-area">
+            <div class="result-header">
+                <h2>📖 Compendio generado</h2>
+                <div class="btn-group">
+                    <button class="btn btn-success" id="downloadHtmlBtn" disabled>⬇️ Descargar HTML</button>
+                    <button class="btn btn-secondary" id="copyHtmlBtn" disabled>📋 Copiar</button>
+                </div>
+            </div>
+            <div id="resultContainer">
+                <div class="placeholder" id="placeholderMsg">
+                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+                    <span>El compendio se mostrará aquí después de generarlo.</span>
+                </div>
+                <iframe id="resultIframe" style="display:none;"></iframe>
+                <div id="errorDisplay" class="error-msg" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ----------------------------------------------------------------
+        // 1. CONFIGURACIÓN
+        // ----------------------------------------------------------------
+
+        // --- IMPORTANTE: Cambia esta URL por la de tu Worker desplegado ---
+        const WORKER_URL = 'https://tu-proxy.tu-usuario.workers.dev';
+
+        // Configuración de pdf.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // ----------------------------------------------------------------
+        // 2. ELEMENTOS DOM
+        // ----------------------------------------------------------------
+        const syllabusFile = document.getElementById('syllabusFile');
+        const priorFile = document.getElementById('priorFile');
+        const syllabusInfo = document.getElementById('syllabusInfo');
+        const priorInfo = document.getElementById('priorInfo');
+        const syllabusStatus = document.getElementById('syllabusStatus');
+        const priorStatus = document.getElementById('priorStatus');
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const progressFill = document.getElementById('progressFill');
+        const progressBar = document.getElementById('progressBar');
+        const statusMsg = document.getElementById('statusMsg');
+        const resultIframe = document.getElementById('resultIframe');
+        const placeholderMsg = document.getElementById('placeholderMsg');
+        const errorDisplay = document.getElementById('errorDisplay');
+        const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
+        const copyHtmlBtn = document.getElementById('copyHtmlBtn');
+        const modelSelect = document.getElementById('modelSelect');
+        const temperatureInput = document.getElementById('temperatureInput');
+        const includeDiagnostic = document.getElementById('includeDiagnostic');
+        const customPromptText = document.getElementById('customPrompt');
+
+        // Estado
+        let syllabusText = '';
+        let priorText = '';
+        let generatedHtml = '';
+
+        // ----------------------------------------------------------------
+        // 3. MANEJO DE ARCHIVOS PDF
+        // ----------------------------------------------------------------
+        async function extractTextFromPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const strings = content.items.map(item => item.str);
+                fullText += strings.join(' ') + '\n';
+            }
+            return fullText.trim();
+        }
+
+        syllabusFile.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            syllabusInfo.textContent = file.name;
+            syllabusStatus.textContent = 'Cargando...';
+            syllabusStatus.className = 'status-badge';
+            try {
+                syllabusText = await extractTextFromPDF(file);
+                syllabusStatus.textContent = '✅ Cargado (' + syllabusText.length + ' caracteres)';
+                syllabusStatus.className = 'status-badge loaded';
+            } catch (err) {
+                syllabusStatus.textContent = '❌ Error al leer PDF';
+                syllabusStatus.className = 'status-badge';
+                console.error(err);
+                syllabusText = '';
+            }
+        });
+
+        priorFile.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            priorInfo.textContent = file.name;
+            priorStatus.textContent = 'Cargando...';
+            priorStatus.className = 'status-badge';
+            try {
+                priorText = await extractTextFromPDF(file);
+                priorStatus.textContent = '✅ Cargado (' + priorText.length + ' caracteres)';
+                priorStatus.className = 'status-badge loaded';
+            } catch (err) {
+                priorStatus.textContent = '❌ Error al leer PDF';
+                priorStatus.className = 'status-badge';
+                console.error(err);
+                priorText = '';
+            }
+        });
+
+        // ----------------------------------------------------------------
+        // 4. FUNCIONES AUXILIARES DE UI
+        // ----------------------------------------------------------------
+        function setStatus(msg, progress = null) {
+            statusMsg.textContent = msg;
+            if (progress !== null) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = Math.min(progress, 100) + '%';
+            } else {
+                progressBar.style.display = 'none';
+            }
+        }
+
+        function showError(msg) {
+            errorDisplay.textContent = '❌ ' + msg;
+            errorDisplay.style.display = 'block';
+            resultIframe.style.display = 'none';
+            placeholderMsg.style.display = 'none';
+        }
+
+        function hideError() {
+            errorDisplay.style.display = 'none';
+        }
+
+        function showPlaceholder() {
+            placeholderMsg.style.display = 'flex';
+            resultIframe.style.display = 'none';
+            hideError();
+        }
+
+        function showResult(htmlContent) {
+            hideError();
+            placeholderMsg.style.display = 'none';
+            resultIframe.style.display = 'block';
+            // Escribir el HTML en el iframe
+            const iframeDoc = resultIframe.contentDocument || resultIframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(htmlContent);
+            iframeDoc.close();
+            generatedHtml = htmlContent;
+            downloadHtmlBtn.disabled = false;
+            copyHtmlBtn.disabled = false;
+        }
+
+        // ----------------------------------------------------------------
+        // 5. CONSTRUCCIÓN DEL PROMPT
+        // ----------------------------------------------------------------
+        function buildPrompt(syllabus, prior, includeDiag, extraInstructions) {
+            const diagSection = includeDiag ?
+                `- **Diagnóstico de conocimientos previos**: Crea un test de autoevaluación (10 preguntas tipo test o respuesta corta) basado EXCLUSIVAMENTE en el documento "Conocimientos previos". Incluye las respuestas correctas al final.` :
+                '';
+
+            return `
+        Eres un experto educador y desarrollador web. Debes generar una página web completa (HTML, CSS y JavaScript embebidos en un solo archivo) que sirva como compendio de la asignatura que se describe en el sílabo.
+
+        ### INSTRUCCIONES DETALLADAS:
+
+        1. **Contenido a incluir**:
+           - **Teoría detallada**: Explica todos los temas del sílabo con profundidad, usando ejemplos y diagramas (puedes usar SVG o texto con formato).
+           - **Ejercicios resueltos**: Para cada tema principal, proporciona **3 ejercicios resueltos** con diferentes niveles de dificultad: uno bajo, uno medio y uno alto. Muestra el enunciado y la solución paso a paso.
+           - **Ejercicios propuestos**: Para cada tema, añade **2 ejercicios propuestos** de dificultad media y alta (sin solución, para que el estudiante practique).
+           - ${diagSection}
+
+        2. **Estructura de la página**:
+           - Usa un diseño moderno, responsive, con navegación por temas (pestañas o menú lateral).
+           - La página debe ser autocontenida (un solo archivo HTML).
+           - Incluye estilos CSS atractivos y JavaScript para interactividad (mostrar/ocultar soluciones, etc.).
+
+        3. **Contenido base** (proporcionado por el usuario):
+           - **Sílabo de la asignatura**:
+           ${syllabus}
+
+           - **Conocimientos previos** (usa este documento SOLO para el diagnóstico y para enlazar conceptos):
+           ${prior}
+
+        4. **Instrucciones adicionales del usuario**:
+           ${extraInstructions || 'Ninguna.'}
+
+        5. **Formato de salida**:
+           - Devuelve ÚNICAMENTE el código HTML completo de la página web, sin ningún texto adicional fuera del código. No uses markdown ni bloques de código; entrega directamente el HTML.
+
+        Asegúrate de que el contenido sea correcto, completo y pedagógicamente sólido. La extensión esperada es grande (varios miles de líneas).
+        `;
+        }
+
+        // ----------------------------------------------------------------
+        // 6. GENERACIÓN (llamada al Worker)
+        // ----------------------------------------------------------------
+        async function generateCompendium() {
+            // Validar que hayamos cargado los PDFs
+            if (!syllabusText || !priorText) {
+                alert('Por favor, carga ambos archivos PDF (sílabo y conocimientos previos).');
+                return;
+            }
+
+            // Deshabilitar botón
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Generando...';
+            showPlaceholder();
+            hideError();
+            setStatus('Preparando prompt...', 5);
+
+            try {
+                // Construir prompt
+                const prompt = buildPrompt(
+                    syllabusText,
+                    priorText,
+                    includeDiagnostic.checked,
+                    customPromptText.value
+                );
+
+                setStatus('Enviando a DeepSeek...', 20);
+
+                // Obtener modelo y temperatura
+                const model = modelSelect.value;
+                const temperature = parseFloat(temperatureInput.value) || 0.7;
+
+                // Llamar al Worker (que actúa como proxy)
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'system', content: 'Eres un asistente experto en educación y desarrollo web. Genera código HTML completo y válido.' },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: temperature,
+                        max_tokens: 350000, // Ajusta según necesidad (máximo 384k)
+                        stream: false // Por simplicidad, no usamos stream, pero podrías implementarlo
+                    })
+                });
+
+                setStatus('Esperando respuesta...', 40);
+
+                if (!response.ok) {
+                    let errMsg = `Error ${response.status}: ${response.statusText}`;
+                    try {
+                        const errData = await response.json();
+                        if (errData.error) errMsg = errData.error.message || errMsg;
+                    } catch (_) { /* ignore */ }
+                    throw new Error(errMsg);
+                }
+
+                setStatus('Procesando respuesta...', 70);
+
+                const data = await response.json();
+                if (data.choices && data.choices.length > 0) {
+                    const content = data.choices[0].message.content;
+                    // Limpiar posibles bloques de código markdown
+                    let html = content;
+                    // Quitar ```html ... ``` o ``` ... ```
+                    html = html.replace(/```(?:html)?\s*([\s\S]*?)\s*```/g, (match, code) => code.trim());
+                    // Si no se encuentra HTML, se asume que todo es HTML
+                    showResult(html);
+                    setStatus('✅ Compendio generado correctamente', 100);
+                } else {
+                    throw new Error('La respuesta no contiene contenido válido.');
+                }
+
+            } catch (error) {
+                console.error(error);
+                showError(error.message || 'Error desconocido al generar el compendio.');
+                setStatus('❌ Error', null);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🚀 Generar Compendio';
+                setTimeout(() => {
+                    if (!generatedHtml) setStatus('Listo', null);
+                }, 1000);
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // 7. EVENT LISTENERS
+        // ----------------------------------------------------------------
+        generateBtn.addEventListener('click', generateCompendium);
+
+        clearBtn.addEventListener('click', () => {
+            // Limpiar campos
+            syllabusFile.value = '';
+            priorFile.value = '';
+            syllabusInfo.textContent = 'Ningún archivo seleccionado';
+            priorInfo.textContent = 'Ningún archivo seleccionado';
+            syllabusStatus.textContent = 'Sin cargar';
+            syllabusStatus.className = 'status-badge';
+            priorStatus.textContent = 'Sin cargar';
+            priorStatus.className = 'status-badge';
+            syllabusText = '';
+            priorText = '';
+            generatedHtml = '';
+            showPlaceholder();
+            resultIframe.style.display = 'none';
+            downloadHtmlBtn.disabled = true;
+            copyHtmlBtn.disabled = true;
+            setStatus('Listo', null);
+            hideError();
+            customPromptText.value = '';
+        });
+
+        // Descargar HTML
+        downloadHtmlBtn.addEventListener('click', () => {
+            if (!generatedHtml) return;
+            const blob = new Blob([generatedHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'compendio.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Copiar HTML al portapapeles
+        copyHtmlBtn.addEventListener('click', async () => {
+            if (!generatedHtml) return;
+            try {
+                await navigator.clipboard.writeText(generatedHtml);
+                alert('¡HTML copiado al portapapeles!');
+            } catch (err) {
+                alert('No se pudo copiar: ' + err.message);
+            }
+        });
+
+        // ----------------------------------------------------------------
+        // 8. INICIO
+        // ----------------------------------------------------------------
+        showPlaceholder();
+        setStatus('Listo, carga los archivos y genera.', null);
+    </script>
+
+</body>
+</html>

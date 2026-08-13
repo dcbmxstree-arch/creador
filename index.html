@@ -539,6 +539,159 @@
             return !!prerequisitosText;
         }
 
+        // --- Estado visual "generando..." para dar feedback claro al usuario ---
+        function marcarGenerando() {
+            generarCapBtn.disabled = true;
+            aplicarComentariosBtn.disabled = true;
+            aceptarCapBtn.disabled = true;
+            if (!generarCapBtn.dataset.textoOriginal) generarCapBtn.dataset.textoOriginal = generarCapBtn.textContent;
+            if (!aplicarComentariosBtn.dataset.textoOriginal) aplicarComentariosBtn.dataset.textoOriginal = aplicarComentariosBtn.textContent;
+            generarCapBtn.textContent = '⏳ Generando...';
+            aplicarComentariosBtn.textContent = '⏳ Generando...';
+            capCode.value = '';
+            previewIframe.srcdoc =
+                '<div style="display:flex;align-items:center;justify-content:center;height:280px;' +
+                'font-family:Segoe UI,Roboto,sans-serif;color:#64748b;text-align:center;padding:1rem;">' +
+                '<p>⏳ Generando contenido con IA...<br><small>Esto puede tardar unos segundos, no cierres esta pestaña.</small></p></div>';
+        }
+
+        function restaurarBotones() {
+            generarCapBtn.textContent = generarCapBtn.dataset.textoOriginal || '⚙️ Generar';
+            aplicarComentariosBtn.textContent = aplicarComentariosBtn.dataset.textoOriginal || '🔄 Regenerar con comentarios';
+        }
+
+        // --- Bloque de calificación que envuelve las preguntas de la evaluación diagnóstica ---
+        function bloqueDiagnosticoHTML(html) {
+            return [
+                '<div class="calificar-wrap">',
+                '  <button type="button" class="btn-calificar" id="btnCalificarDiagnostico" onclick="calificarDiagnostico()">📝 Calificar evaluación</button>',
+                '  <div id="resultadoDiagnostico" class="resultado-diagnostico" hidden></div>',
+                '</div>',
+                '<div id="preguntasDiagnostico">',
+                html,
+                '</div>'
+            ].join('\n');
+        }
+
+        // --- Script de alternancia de soluciones (ejercicios / preguntas teóricas) ---
+        const SCRIPT_TOGGLE_SOLUCION = `
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.btn-solucion').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var sol = this.parentElement.querySelector('.solucion');
+      if (sol) {
+        sol.classList.toggle('mostrar');
+        this.textContent = sol.classList.contains('mostrar') ? 'Ocultar solución' : 'Mostrar solución';
+      }
+    });
+  });
+});
+`;
+
+        // --- Script de calificación automática de la evaluación diagnóstica ---
+        // La calificación (puntaje) se muestra PRIMERO y luego, más abajo, se revelan
+        // las soluciones y se resaltan las opciones correctas/incorrectas de cada pregunta.
+        const SCRIPT_CALIFICAR_DIAGNOSTICO = `
+function calificarDiagnostico() {
+  var cont = document.getElementById('preguntasDiagnostico');
+  if (!cont) return;
+  var preguntas = cont.querySelectorAll('.pregunta-diagnostico');
+  var correctas = 0;
+  preguntas.forEach(function (p) {
+    var correcta = (p.getAttribute('data-correcta') || '').trim().toUpperCase();
+    var marcado = p.querySelector('input[type="radio"]:checked');
+    var valor = marcado ? marcado.value.trim().toUpperCase() : null;
+    var esCorrecta = !!valor && valor === correcta;
+    if (esCorrecta) correctas++;
+    p.classList.add('calificada');
+    p.classList.toggle('correcta', esCorrecta);
+    p.classList.toggle('incorrecta', !esCorrecta);
+    p.querySelectorAll('.opcion').forEach(function (op) {
+      var input = op.querySelector('input');
+      if (!input) return;
+      var v = input.value.trim().toUpperCase();
+      if (v === correcta) op.classList.add('opcion-correcta');
+      if (marcado && v === valor && valor !== correcta) op.classList.add('opcion-incorrecta');
+      input.disabled = true;
+    });
+    var sol = p.querySelector('.solucion');
+    if (sol) sol.classList.add('mostrar');
+  });
+
+  var total = preguntas.length;
+  var porcentaje = total ? Math.round((correctas / total) * 100) : 0;
+  var nivel, mensaje;
+  if (porcentaje >= 80) {
+    nivel = 'alto';
+    mensaje = 'Buen dominio de los conocimientos previos. Puedes iniciar el curso con confianza.';
+  } else if (porcentaje >= 50) {
+    nivel = 'medio';
+    mensaje = 'Nivel aceptable. Repasa los temas de las preguntas marcadas como incorrectas antes de avanzar.';
+  } else {
+    nivel = 'bajo';
+    mensaje = 'Se recomienda repasar a fondo los conocimientos previos antes de iniciar el curso.';
+  }
+
+  var resultado = document.getElementById('resultadoDiagnostico');
+  if (resultado) {
+    resultado.hidden = false;
+    resultado.className = 'resultado-diagnostico nivel-' + nivel;
+    resultado.innerHTML =
+      '<div class="resultado-puntaje">' + correctas + ' / ' + total + ' (' + porcentaje + '%)</div>' +
+      '<div class="resultado-mensaje">' + mensaje + '</div>';
+    resultado.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  var btn = document.getElementById('btnCalificarDiagnostico');
+  if (btn) { btn.disabled = true; btn.textContent = '✅ Evaluación calificada'; }
+}
+`;
+
+        // --- Estilos usados dentro de la vista previa embebida (versión ligera del diseño final) ---
+        const PREVIEW_STYLES = `
+:root { --paper:#F7F6F1; --ink:#1D2B4F; --amber:#D98E04; --amber-soft:#FBEBCB; --teal:#146C6B; --teal-soft:#DCF3F2; --brick:#B3261E; }
+body { font-family: 'Segoe UI', Roboto, sans-serif; background:#fff; color:var(--ink); line-height:1.6; padding:1rem; margin:0; }
+.preview-doc { max-width: 760px; margin:0 auto; }
+.ejercicio, .pregunta-diagnostico, .pregunta-teorica { background:#FBFAF6; border:1.5px dashed #C7C2AE; border-radius:0.6rem; padding:1rem 1.2rem; margin:1.2rem 0; }
+.pregunta-diagnostico { border-color:var(--teal); background:var(--teal-soft); }
+.pregunta-teorica { border-color:var(--amber); background:var(--amber-soft); }
+.propuesto { background:#FFF6E5; border-left:4px solid var(--amber); border-radius:0.4rem; padding:0.8rem 1.1rem; margin:1rem 0; }
+.opciones { display:flex; flex-direction:column; gap:0.4rem; margin:0.6rem 0; }
+.opcion { display:flex; align-items:center; gap:0.5rem; padding:0.3rem 0.5rem; border-radius:0.4rem; cursor:pointer; }
+.opcion:hover { background:rgba(0,0,0,0.05); }
+.opcion-correcta { background:#DCFCE7; font-weight:600; }
+.opcion-incorrecta { background:#FEE2E2; text-decoration:line-through; }
+.pregunta-diagnostico.correcta { outline:2px solid #16A34A; }
+.pregunta-diagnostico.incorrecta { outline:2px solid var(--brick); }
+.solucion { display:none; margin-top:0.6rem; padding:0.6rem 0.9rem; background:#fff; border-left:3px solid var(--ink); border-radius:0.4rem; }
+.solucion.mostrar { display:block; }
+.btn-solucion { background:var(--ink); color:#fff; border:none; padding:0.35rem 0.9rem; border-radius:1.2rem; cursor:pointer; font-size:0.75rem; margin-top:0.5rem; }
+.calificar-wrap { text-align:center; margin: 0 0 1.2rem; }
+.btn-calificar { background:var(--teal); color:#fff; border:none; padding:0.6rem 1.6rem; border-radius:2rem; cursor:pointer; font-weight:600; font-size:0.9rem; }
+.btn-calificar:disabled { opacity:0.6; cursor:default; }
+.resultado-diagnostico { margin:0.8rem auto 1.5rem; max-width:420px; padding:1rem 1.4rem; border-radius:0.6rem; text-align:center; }
+.resultado-diagnostico.nivel-alto { background:#DCFCE7; color:#166534; }
+.resultado-diagnostico.nivel-medio { background:#FEF9C3; color:#854D0E; }
+.resultado-diagnostico.nivel-bajo { background:#FEE2E2; color:#991B1B; }
+.resultado-puntaje { font-size:1.5rem; font-weight:700; }
+.resultado-mensaje { font-size:0.85rem; margin-top:0.3rem; }
+`;
+
+        // --- Construye el documento que se muestra en el iframe de vista previa ---
+        function buildPreviewHtml(fragmentHtml, esDiagnostico) {
+            const cuerpo = esDiagnostico ? bloqueDiagnosticoHTML(fragmentHtml) : fragmentHtml;
+            const partes = [
+                '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">',
+                '<style>', PREVIEW_STYLES, '</style>',
+                '<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></' + 'script>',
+                '</head><body>',
+                '<div class="preview-doc">', cuerpo, '</div>',
+                '<script>', SCRIPT_TOGGLE_SOLUCION, esDiagnostico ? SCRIPT_CALIFICAR_DIAGNOSTICO : '', '</' + 'script>',
+                '</body></html>'
+            ];
+            return partes.join('\n');
+        }
+
         function todoListoParaEnsamblar() {
             const capsOk = plan.length > 0 && plan.every(n => capitulosAceptados[n]);
             const diagOk = !tieneDiagnostico() || diagnostico.aceptado;
@@ -610,7 +763,9 @@
                 capTitulo.textContent = '🩺 Evaluación diagnóstica';
                 const html = diagnostico.html || '';
                 capCode.value = html;
-                previewIframe.srcdoc = html || '<p style="text-align:center; color:#94a3b8; padding:2rem;">Contenido no generado aún.</p>';
+                previewIframe.srcdoc = html
+                    ? buildPreviewHtml(html, true)
+                    : '<p style="text-align:center; color:#94a3b8; padding:2rem;">Contenido no generado aún.</p>';
                 generarCapBtn.disabled = false;
                 aceptarCapBtn.disabled = diagnostico.aceptado || !diagnostico.html;
                 aplicarComentariosBtn.disabled = !diagnostico.html;
@@ -622,7 +777,9 @@
                 capTitulo.textContent = seleccion;
                 const html = capitulos[seleccion] || '';
                 capCode.value = html;
-                previewIframe.srcdoc = html || '<p style="text-align:center; color:#94a3b8; padding:2rem;">Contenido no generado aún.</p>';
+                previewIframe.srcdoc = html
+                    ? buildPreviewHtml(html, false)
+                    : '<p style="text-align:center; color:#94a3b8; padding:2rem;">Contenido no generado aún.</p>';
                 generarCapBtn.disabled = false;
                 aceptarCapBtn.disabled = capitulosAceptados[seleccion] || !capitulos[seleccion];
                 aplicarComentariosBtn.disabled = !capitulos[seleccion];
@@ -777,7 +934,7 @@
             }
 
             const asignatura = tituloAsignatura.value.trim() || 'la asignatura';
-            generarCapBtn.disabled = true;
+            marcarGenerando();
             setStatus('Generando evaluación diagnóstica...', 20);
 
             try {
@@ -793,11 +950,24 @@
           Basa TODAS las preguntas exclusivamente en los siguientes conocimientos previos requeridos (no uses temas del contenido del curso, solo de este documento de prerrequisitos):
           ${prerequisitosText}
 
-          Requisitos obligatorios:
-          - Entre 12 y 18 preguntas de dificultad MEDIA a ALTA (evita preguntas triviales o de simple memorización).
-          - Combina preguntas teóricas conceptuales y preguntas de resolución de problemas/ejercicios.
-          - Cada pregunta debe envolverse en <div class="pregunta-diagnostico">, con el enunciado claro y, si aplica, datos numéricos concretos.
-          - Cada pregunta debe incluir su solución dentro de <div class="solucion">...</div> (oculta por defecto) y un <button class="btn-solucion">Mostrar solución</button> justo antes, para alternar visibilidad (el script de alternancia ya existe fuera de este fragmento, usa exactamente esas clases).
+          Esta evaluación se calificará AUTOMÁTICAMENTE, así que el formato debe seguirse EXACTAMENTE:
+          - Entre 12 y 18 preguntas de OPCIÓN MÚLTIPLE, dificultad MEDIA a ALTA (evita preguntas triviales o de simple memorización).
+          - Combina preguntas teóricas conceptuales y preguntas de resolución de problemas/ejercicios, siempre en formato de opción múltiple con 4 opciones (A, B, C, D) y una única respuesta correcta.
+          - Cada pregunta debe tener EXACTAMENTE esta estructura (usa un "name" distinto por pregunta, por ejemplo diag1, diag2, diag3...):
+
+          <div class="pregunta-diagnostico" data-correcta="B">
+            <p class="enunciado">Enunciado de la pregunta...</p>
+            <div class="opciones">
+              <label class="opcion"><input type="radio" name="diag1" value="A"> A) primera opción</label>
+              <label class="opcion"><input type="radio" name="diag1" value="B"> B) segunda opción</label>
+              <label class="opcion"><input type="radio" name="diag1" value="C"> C) tercera opción</label>
+              <label class="opcion"><input type="radio" name="diag1" value="D"> D) cuarta opción</label>
+            </div>
+            <div class="solucion"><strong>Respuesta correcta: B)</strong> explicación breve de por qué es correcta.</div>
+          </div>
+
+          - El atributo data-correcta del <div class="pregunta-diagnostico"> debe coincidir EXACTAMENTE con el value (A/B/C/D) de la opción correcta.
+          - NO incluyas ningún botón de "mostrar solución" dentro de cada pregunta: la calificación y la revelación de las soluciones se maneja automáticamente fuera de este fragmento.
           - Puedes usar MathJax (\\( ... \\) o \\[ ... \\]) para notación matemática si aplica.
           - No incluyas título general (<h1>/<h2> con el nombre del apartado); el título ya se añade externamente. Empieza directo con las preguntas.
 
@@ -809,25 +979,21 @@
         `;
 
                 const contenido = await callDeepSeek([
-                    { role: 'system', content: 'Eres un experto en evaluación educativa y diseño de exámenes diagnósticos.' },
+                    { role: 'system', content: 'Eres un experto en evaluación educativa y diseño de exámenes diagnósticos de opción múltiple.' },
                     { role: 'user', content: prompt }
                 ], 200000);
 
                 diagnostico.html = limpiarHTML(contenido);
                 diagnostico.generado = true;
-                capCode.value = diagnostico.html;
-                previewIframe.srcdoc = diagnostico.html;
                 capComentarios.value = '';
-                aplicarComentariosBtn.disabled = false;
-                aceptarCapBtn.disabled = false;
-                renderPlan();
                 setStatus('✅ Evaluación diagnóstica generada. Revisa y comenta si es necesario.', 100);
             } catch (error) {
                 console.error(error);
                 showError('Error al generar la evaluación diagnóstica: ' + error.message);
                 setStatus('❌ Error', null);
             } finally {
-                generarCapBtn.disabled = false;
+                restaurarBotones();
+                renderPlan();
             }
         }
 
@@ -841,7 +1007,7 @@
                 return;
             }
 
-            generarCapBtn.disabled = true;
+            marcarGenerando();
             setStatus(`Generando capítulo: ${nombre}...`, 20);
 
             try {
@@ -883,22 +1049,16 @@
                     { role: 'user', content: prompt }
                 ], 200000);
 
-                const limpio = limpiarHTML(contenido);
-
-                capitulos[nombre] = limpio;
-                capCode.value = limpio;
-                previewIframe.srcdoc = limpio;
+                capitulos[nombre] = limpiarHTML(contenido);
                 capComentarios.value = '';
-                aplicarComentariosBtn.disabled = false;
-                aceptarCapBtn.disabled = false;
-                renderPlan();
                 setStatus(`✅ Capítulo "${nombre}" generado. Revisa y comenta si es necesario.`, 100);
             } catch (error) {
                 console.error(error);
                 showError('Error al generar el capítulo: ' + error.message);
                 setStatus('❌ Error', null);
             } finally {
-                generarCapBtn.disabled = false;
+                restaurarBotones();
+                renderPlan();
             }
         }
 
@@ -981,9 +1141,9 @@
                     '<section id="diagnostico" class="ficha ficha-diag">',
                     '  <div class="ficha-eyebrow">Punto de partida · Evaluación diagnóstica</div>',
                     '  <h2 class="ficha-titulo">¿Estás listo para empezar?</h2>',
-                    '  <p class="ficha-intro">Resuelve las siguientes preguntas antes de iniciar el curso. Te permitirán identificar qué conocimientos previos conviene repasar.</p>',
+                    '  <p class="ficha-intro">Resuelve las siguientes preguntas antes de iniciar el curso. Al calificar verás tu puntaje y luego las respuestas correctas de cada pregunta.</p>',
                     '  <div class="ficha-cuerpo">',
-                    diagnostico.html,
+                    bloqueDiagnosticoHTML(diagnostico.html),
                     '  </div>',
                     '</section>'
                 ].join('\n'));
@@ -1051,17 +1211,8 @@
                 '</main>',
                 pie,
                 '<script>',
-                'document.addEventListener("DOMContentLoaded", function () {',
-                '  document.querySelectorAll(".btn-solucion").forEach(function (btn) {',
-                '    btn.addEventListener("click", function () {',
-                '      var sol = this.parentElement.querySelector(".solucion");',
-                '      if (sol) {',
-                '        sol.classList.toggle("mostrar");',
-                '        this.textContent = sol.classList.contains("mostrar") ? "Ocultar solución" : "Mostrar solución";',
-                '      }',
-                '    });',
-                '  });',
-                '});',
+                SCRIPT_TOGGLE_SOLUCION,
+                (tieneDiagnostico() ? SCRIPT_CALIFICAR_DIAGNOSTICO : ''),
                 '</' + 'script>',
                 '</body>',
                 '</html>'
@@ -1219,6 +1370,41 @@
                 font-size: 0.75rem; margin-top: 0.6rem;
             }
             .btn-solucion:hover { background: #14213d; }
+
+            /* --- Opción múltiple (evaluación diagnóstica) --- */
+            .opciones { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.9rem 0; }
+            .opcion {
+                display: flex; align-items: center; gap: 0.6rem;
+                padding: 0.45rem 0.7rem; border-radius: 0.4rem;
+                cursor: pointer; font-family: 'Source Serif 4', Georgia, serif;
+            }
+            .opcion:hover { background: rgba(29, 43, 79, 0.05); }
+            .opcion input[type="radio"] { accent-color: var(--teal); }
+            .opcion-correcta { background: #DCFCE7; font-weight: 600; }
+            .opcion-incorrecta { background: #FEE2E2; text-decoration: line-through; }
+            .pregunta-diagnostico.correcta { outline: 2px solid #16A34A; outline-offset: 2px; }
+            .pregunta-diagnostico.incorrecta { outline: 2px solid var(--brick); outline-offset: 2px; }
+
+            /* --- Calificación de la evaluación diagnóstica --- */
+            .calificar-wrap { text-align: center; margin: 0 0 1.6rem; }
+            .btn-calificar {
+                font-family: 'IBM Plex Mono', monospace;
+                background: var(--teal); color: white;
+                border: none; padding: 0.7rem 1.8rem;
+                border-radius: 2rem; cursor: pointer;
+                font-weight: 600; font-size: 0.9rem;
+            }
+            .btn-calificar:hover { background: #0f5352; }
+            .btn-calificar:disabled { opacity: 0.6; cursor: default; }
+            .resultado-diagnostico {
+                margin: 1rem auto 0; max-width: 420px;
+                padding: 1.1rem 1.5rem; border-radius: 0.6rem; text-align: center;
+            }
+            .resultado-diagnostico.nivel-alto { background: #DCFCE7; color: #166534; }
+            .resultado-diagnostico.nivel-medio { background: #FEF9C3; color: #854D0E; }
+            .resultado-diagnostico.nivel-bajo { background: #FEE2E2; color: #991B1B; }
+            .resultado-puntaje { font-family: 'Space Grotesk', sans-serif; font-size: 1.7rem; font-weight: 700; }
+            .resultado-mensaje { font-size: 0.88rem; margin-top: 0.4rem; }
 
             /* --- Pie institucional --- */
             .pie-institucional {

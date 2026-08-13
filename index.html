@@ -6,16 +6,11 @@
     <title>Generador de Página Web · por Capítulos</title>
 
     <!-- pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <style>
-        /* --- Estilos generales --- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        /* --- Estilos generales de la app generadora --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: #f0f4f8;
             font-family: 'Segoe UI', Roboto, sans-serif;
@@ -49,7 +44,7 @@
         .subtitle {
             color: #475569;
             margin-bottom: 2rem;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid #1D2B4F;
             padding-left: 1rem;
             font-size: 1.05rem;
         }
@@ -61,15 +56,8 @@
             gap: 1.2rem;
             margin: 1.5rem 0;
         }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-        .form-group label {
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
+        .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .form-group label { font-weight: 500; font-size: 0.95rem; }
         .form-group input,
         .form-group textarea {
             padding: 0.6rem 0.8rem;
@@ -78,30 +66,28 @@
             font-size: 0.95rem;
             background: white;
         }
-        .form-group textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-        .full-width {
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .full-width { grid-column: 1 / -1; }
+        .section-label {
             grid-column: 1 / -1;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-top: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.3rem;
         }
         .file-box {
             background: #f8fafc;
             border: 2px dashed #cbd5e1;
             border-radius: 1rem;
             padding: 1rem 1.5rem;
-            grid-column: 1 / -1;
         }
-        .file-box label {
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.4rem;
-        }
-        .file-box .file-info {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-top: 0.3rem;
-        }
+        .file-box.full-width { grid-column: 1 / -1; }
+        .file-box label { font-weight: 600; display: block; margin-bottom: 0.4rem; }
+        .file-box .file-info { font-size: 0.85rem; color: #64748b; margin-top: 0.3rem; }
         .file-box .status-badge {
             display: inline-block;
             margin-top: 0.5rem;
@@ -112,10 +98,7 @@
             background: #e2e8f0;
             color: #475569;
         }
-        .file-box .status-badge.loaded {
-            background: #bbf7d0;
-            color: #166534;
-        }
+        .file-box .status-badge.loaded { background: #bbf7d0; color: #166534; }
 
         /* --- Botones --- */
         .actions {
@@ -126,7 +109,7 @@
             align-items: center;
         }
         .btn {
-            background: #3b82f6;
+            background: #1D2B4F;
             color: white;
             border: none;
             padding: 0.7rem 1.8rem;
@@ -138,61 +121,27 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+            box-shadow: 0 4px 12px rgba(29, 43, 79, 0.25);
         }
-        .btn:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            pointer-events: none;
-            transform: none;
-        }
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #1e293b;
-            box-shadow: none;
-        }
-        .btn-secondary:hover {
-            background: #cbd5e1;
-        }
-        .btn-success {
-            background: #22c55e;
-            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
-        }
-        .btn-success:hover {
-            background: #16a34a;
-        }
-        .btn-warning {
-            background: #f59e0b;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
-        }
-        .btn-warning:hover {
-            background: #d97706;
-        }
+        .btn:hover { background: #14213d; transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.5; pointer-events: none; transform: none; }
+        .btn-secondary { background: #e2e8f0; color: #1e293b; box-shadow: none; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-success { background: #146C6B; box-shadow: 0 4px 12px rgba(20, 108, 107, 0.25); }
+        .btn-success:hover { background: #0f5352; }
+        .btn-warning { background: #D98E04; box-shadow: 0 4px 12px rgba(217, 142, 4, 0.25); }
+        .btn-warning:hover { background: #b87600; }
 
         #progressBar {
-            flex: 1;
-            min-width: 150px;
-            height: 6px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
-            display: none;
+            flex: 1; min-width: 150px; height: 6px;
+            background: #e2e8f0; border-radius: 10px; overflow: hidden; display: none;
         }
         #progressBar .fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            border-radius: 10px;
-            transition: width 0.3s;
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #1D2B4F, #146C6B);
+            border-radius: 10px; transition: width 0.3s;
         }
-        #statusMsg {
-            font-size: 0.9rem;
-            color: #475569;
-            margin-left: 0.5rem;
-        }
+        #statusMsg { font-size: 0.9rem; color: #475569; margin-left: 0.5rem; }
 
         /* --- Área de trabajo --- */
         .work-area {
@@ -207,20 +156,14 @@
             background: #f8fafc;
             border-radius: 1rem;
             padding: 1rem;
-            max-height: 600px;
+            max-height: 640px;
             overflow-y: auto;
         }
         .panel-plan h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.8rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            font-size: 1.1rem; margin-bottom: 0.8rem;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .panel-plan ul {
-            list-style: none;
-            padding: 0;
-        }
+        .panel-plan ul { list-style: none; padding: 0; }
         .panel-plan ul li {
             padding: 0.5rem 0.8rem;
             margin-bottom: 0.3rem;
@@ -234,185 +177,78 @@
             align-items: center;
             font-size: 0.9rem;
         }
-        .panel-plan ul li:hover {
-            background: #f1f5f9;
+        .panel-plan ul li:hover { background: #f1f5f9; }
+        .panel-plan ul li.active { border-color: #1D2B4F; background: #e2e8f0; }
+        .panel-plan ul li.done { border-color: #146C6B; background: #dcf5f2; }
+        .panel-plan ul li.item-diag { border-left: 4px solid #146C6B; }
+        .panel-plan ul li.separator {
+            background: transparent; border: none; box-shadow: none;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em;
+            text-transform: uppercase; color: #94a3b8; padding: 0.6rem 0.2rem 0.2rem;
+            cursor: default; margin-bottom: 0.1rem;
         }
-        .panel-plan ul li.active {
-            border-color: #3b82f6;
-            background: #dbeafe;
-        }
-        .panel-plan ul li.done {
-            border-color: #22c55e;
-            background: #dcfce7;
-        }
+        .panel-plan ul li.separator:hover { background: transparent; }
         .panel-plan ul li .badge {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.6rem;
-            border-radius: 20px;
-            background: #e2e8f0;
-            color: #475569;
+            font-size: 0.7rem; padding: 0.15rem 0.6rem; border-radius: 20px;
+            background: #e2e8f0; color: #475569; flex-shrink: 0; margin-left: 0.5rem;
         }
-        .panel-plan ul li.done .badge {
-            background: #22c55e;
-            color: white;
-        }
-        .panel-plan ul li.active .badge {
-            background: #3b82f6;
-            color: white;
-        }
+        .panel-plan ul li.done .badge { background: #146C6B; color: white; }
+        .panel-plan ul li.active .badge { background: #1D2B4F; color: white; }
 
-        .panel-capitulo {
-            background: white;
-            border-radius: 1rem;
-            padding: 1rem;
-            border: 1px solid #e2e8f0;
-        }
+        .panel-capitulo { background: white; border-radius: 1rem; padding: 1rem; border: 1px solid #e2e8f0; }
         .panel-capitulo .cap-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; margin-bottom: 1rem;
         }
-        .panel-capitulo .cap-header h3 {
-            font-size: 1.2rem;
-        }
-        .panel-capitulo .cap-header .btn-group {
-            display: flex;
-            gap: 0.5rem;
-        }
+        .panel-capitulo .cap-header h3 { font-size: 1.2rem; }
+        .panel-capitulo .cap-header .btn-group { display: flex; gap: 0.5rem; }
 
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
         .tabs button {
-            padding: 0.4rem 1.2rem;
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            border-radius: 2rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.2s;
+            padding: 0.4rem 1.2rem; border: 1px solid #cbd5e1; background: #f8fafc;
+            border-radius: 2rem; cursor: pointer; font-weight: 500; transition: 0.2s;
         }
-        .tabs button.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
+        .tabs button.active { background: #1D2B4F; color: white; border-color: #1D2B4F; }
 
-        .preview-area {
-            background: #f8fafc;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            min-height: 300px;
-        }
-        .preview-area iframe {
-            width: 100%;
-            height: 400px;
-            border: none;
-            border-radius: 0.5rem;
-            background: white;
-        }
-        .panel-capitulo .comentarios {
-            margin-top: 1rem;
-        }
-        .panel-capitulo .comentarios label {
-            font-weight: 500;
-            display: block;
-            margin-bottom: 0.3rem;
-        }
+        .preview-area { background: #f8fafc; border-radius: 0.5rem; padding: 0.5rem; min-height: 300px; }
+        .preview-area iframe { width: 100%; height: 400px; border: none; border-radius: 0.5rem; background: white; }
+        .panel-capitulo .comentarios { margin-top: 1rem; }
+        .panel-capitulo .comentarios label { font-weight: 500; display: block; margin-bottom: 0.3rem; }
         .panel-capitulo .comentarios textarea {
-            width: 100%;
-            min-height: 80px;
-            background: #f8fafc;
-            color: #1e293b;
-            font-family: inherit;
-            font-size: 0.9rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            padding: 0.6rem;
-            resize: vertical;
+            width: 100%; min-height: 80px; background: #f8fafc; color: #1e293b;
+            font-family: inherit; font-size: 0.9rem; border: 1px solid #cbd5e1;
+            border-radius: 0.5rem; padding: 0.6rem; resize: vertical;
         }
 
-        .code-area {
-            margin-top: 1rem;
-        }
+        .code-area { margin-top: 1rem; }
         .code-area textarea {
-            width: 100%;
-            min-height: 200px;
-            background: #0f172a;
-            color: #e2e8f0;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.8rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            resize: vertical;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            width: 100%; min-height: 200px; background: #0f172a; color: #e2e8f0;
+            border: none; border-radius: 0.5rem; padding: 0.8rem;
+            font-family: 'Courier New', monospace; font-size: 0.85rem;
+            resize: vertical; white-space: pre-wrap; word-wrap: break-word;
         }
 
-        .result-area {
-            margin-top: 2rem;
-            border-top: 2px solid #e2e8f0;
-            padding-top: 1.5rem;
-        }
+        .result-area { margin-top: 2rem; border-top: 2px solid #e2e8f0; padding-top: 1.5rem; }
         .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;
         }
-        .result-header h2 {
-            font-size: 1.4rem;
-            font-weight: 500;
-        }
-        #resultContainer {
-            background: #1e293b;
-            border-radius: 1rem;
-            padding: 1rem;
-            min-height: 400px;
-            position: relative;
-        }
-        #resultContainer iframe {
-            width: 100%;
-            height: 600px;
-            border: none;
-            border-radius: 0.5rem;
-            background: white;
-        }
+        .result-header h2 { font-size: 1.4rem; font-weight: 500; }
+        #resultContainer { background: #1e293b; border-radius: 1rem; padding: 1rem; min-height: 400px; position: relative; }
+        #resultContainer iframe { width: 100%; height: 700px; border: none; border-radius: 0.5rem; background: white; }
         #resultContainer .placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 300px;
-            color: #94a3b8;
-            font-size: 1.1rem;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 300px; color: #94a3b8; font-size: 1.1rem;
         }
         .error-msg {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 0.8rem 1.2rem;
-            border-radius: 0.75rem;
-            margin-top: 0.5rem;
-            border-left: 4px solid #ef4444;
+            background: #fee2e2; color: #991b1b; padding: 0.8rem 1.2rem;
+            border-radius: 0.75rem; margin-top: 0.5rem; border-left: 4px solid #B3261E;
         }
 
         @media (max-width: 860px) {
-            .work-area {
-                grid-template-columns: 1fr;
-            }
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            .container {
-                padding: 1.5rem;
-            }
+            .work-area { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .container { padding: 1.5rem; }
         }
     </style>
 </head>
@@ -423,25 +259,48 @@
         <header>
             <h1>
                 🌐 Generador de Página Web
-                <small>por capítulos · con revisión</small>
+                <small>por capítulos · con evaluación diagnóstica y revisión</small>
             </h1>
             <div class="subtitle">
-                Carga el sílabo, genera el plan, revisa capítulo por capítulo y obtén una página web completa y moderna.
+                Carga el sílabo y los conocimientos previos requeridos, define los datos institucionales, revisa cada apartado y obtén una página web completa y con identidad propia para tu asignatura.
             </div>
         </header>
 
         <!-- Formulario de entrada -->
         <div class="form-grid">
-            <div class="form-group full-width">
+            <div class="section-label">Datos institucionales</div>
+            <div class="form-group">
+                <label for="universidadInput">🏛️ Universidad</label>
+                <input type="text" id="universidadInput" placeholder="Ej. Universidad de las Fuerzas Armadas ESPE" />
+            </div>
+            <div class="form-group">
+                <label for="centroInput">🏢 Centro / Departamento</label>
+                <input type="text" id="centroInput" placeholder="Ej. PHYSIS · Centro de Educación Continua" />
+            </div>
+            <div class="form-group">
+                <label for="telefonoInput">📞 Teléfono de contacto</label>
+                <input type="text" id="telefonoInput" placeholder="Ej. 02 2 xxx xxx" />
+            </div>
+            <div class="form-group">
                 <label for="tituloAsignatura">📚 Título de la asignatura</label>
                 <input type="text" id="tituloAsignatura" placeholder="Ej. Matemáticas Avanzadas" />
             </div>
-            <div class="file-box" id="syllabusBox">
+
+            <div class="section-label">Documentos base</div>
+            <div class="file-box">
                 <label for="syllabusFile">📄 Sílabo de la asignatura (PDF)</label>
                 <input type="file" id="syllabusFile" accept=".pdf" />
                 <div class="file-info" id="syllabusInfo">Ningún archivo seleccionado</div>
                 <span class="status-badge" id="syllabusStatus">Sin cargar</span>
             </div>
+            <div class="file-box">
+                <label for="prerequisitosFile">🧠 Conocimientos previos requeridos (PDF)</label>
+                <input type="file" id="prerequisitosFile" accept=".pdf" />
+                <div class="file-info" id="prerequisitosInfo">Ningún archivo seleccionado</div>
+                <span class="status-badge" id="prerequisitosStatus">Sin cargar</span>
+            </div>
+
+            <div class="section-label">Instrucciones adicionales</div>
             <div class="form-group full-width">
                 <label for="customPrompt">✏️ Instrucciones adicionales (opcional)</label>
                 <textarea id="customPrompt" placeholder="Ej. Enfócate en aplicaciones prácticas, usa ejemplos de ingeniería..."></textarea>
@@ -456,13 +315,10 @@
             <span id="statusMsg">Listo</span>
         </div>
 
-        <!-- Área de trabajo: plan + capítulo -->
+        <!-- Área de trabajo: plan + capítulo / diagnóstico -->
         <div class="work-area" id="workArea" style="display:none;">
             <div class="panel-plan">
-                <h3>
-                    📑 Capítulos
-                    <span id="capCount">0</span>
-                </h3>
+                <h3>📑 Apartados <span id="capCount">0</span></h3>
                 <ul id="planList"></ul>
                 <button class="btn btn-success" id="ensamblarBtn" style="width:100%; margin-top:1rem;" disabled>
                     🧩 Ensamblar página completa
@@ -470,7 +326,7 @@
             </div>
             <div class="panel-capitulo">
                 <div class="cap-header">
-                    <h3 id="capTitulo">Selecciona un capítulo</h3>
+                    <h3 id="capTitulo">Selecciona un apartado</h3>
                     <div class="btn-group">
                         <button class="btn btn-warning" id="generarCapBtn" disabled>⚙️ Generar</button>
                         <button class="btn btn-success" id="aceptarCapBtn" disabled>✅ Aceptar</button>
@@ -483,14 +339,14 @@
                 </div>
 
                 <div id="tabPreview" class="preview-area">
-                    <iframe id="previewIframe" srcdoc="<p style='text-align:center; color:#94a3b8; padding:2rem;'>Selecciona un capítulo y genera su contenido.</p>"></iframe>
+                    <iframe id="previewIframe" srcdoc="<p style='text-align:center; color:#94a3b8; padding:2rem;'>Selecciona un apartado y genera su contenido.</p>"></iframe>
                 </div>
                 <div id="tabCode" class="code-area" style="display:none;">
-                    <textarea id="capCode" placeholder="El código HTML del capítulo aparecerá aquí..." readonly></textarea>
+                    <textarea id="capCode" placeholder="El código HTML del apartado aparecerá aquí..." readonly></textarea>
                 </div>
 
                 <div class="comentarios">
-                    <label for="capComentarios">📝 Comentarios / correcciones para este capítulo:</label>
+                    <label for="capComentarios">📝 Comentarios / correcciones para este apartado:</label>
                     <textarea id="capComentarios" placeholder="Escribe aquí tus observaciones..."></textarea>
                     <button class="btn btn-secondary" id="aplicarComentariosBtn" style="margin-top:0.5rem;" disabled>
                         🔄 Regenerar con comentarios
@@ -530,10 +386,19 @@
         // ----------------------------------------------------------------
         // 2. ELEMENTOS DOM
         // ----------------------------------------------------------------
+        const universidadInput = document.getElementById('universidadInput');
+        const centroInput = document.getElementById('centroInput');
+        const telefonoInput = document.getElementById('telefonoInput');
         const tituloAsignatura = document.getElementById('tituloAsignatura');
+
         const syllabusFile = document.getElementById('syllabusFile');
         const syllabusInfo = document.getElementById('syllabusInfo');
         const syllabusStatus = document.getElementById('syllabusStatus');
+
+        const prerequisitosFile = document.getElementById('prerequisitosFile');
+        const prerequisitosInfo = document.getElementById('prerequisitosInfo');
+        const prerequisitosStatus = document.getElementById('prerequisitosStatus');
+
         const customPromptText = document.getElementById('customPrompt');
         const generarPlanBtn = document.getElementById('generarPlanBtn');
         const clearBtn = document.getElementById('clearBtn');
@@ -565,10 +430,19 @@
         // 3. ESTADO
         // ----------------------------------------------------------------
         let syllabusText = '';
+        let prerequisitosText = '';
+
+        // Evaluación diagnóstica: un único apartado
+        let diagnostico = { generado: false, aceptado: false, html: '' };
+
+        // Contenidos: lista de capítulos
         let plan = [];
         let capitulos = {};
         let capitulosAceptados = {};
-        let capituloActual = null;
+
+        // Selección actual en el panel: 'DIAGNOSTICO' o el nombre de un capítulo
+        let seleccion = null;
+
         let paginaCompleta = '';
 
         // ----------------------------------------------------------------
@@ -605,6 +479,24 @@
             }
         });
 
+        prerequisitosFile.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            prerequisitosInfo.textContent = file.name;
+            prerequisitosStatus.textContent = 'Cargando...';
+            prerequisitosStatus.className = 'status-badge';
+            try {
+                prerequisitosText = await extractTextFromPDF(file);
+                prerequisitosStatus.textContent = '✅ Cargado (' + prerequisitosText.length + ' caracteres)';
+                prerequisitosStatus.className = 'status-badge loaded';
+            } catch (err) {
+                prerequisitosStatus.textContent = '❌ Error al leer PDF';
+                prerequisitosStatus.className = 'status-badge';
+                console.error(err);
+                prerequisitosText = '';
+            }
+        });
+
         // ----------------------------------------------------------------
         // 5. FUNCIONES UI
         // ----------------------------------------------------------------
@@ -625,9 +517,7 @@
             placeholderMsg.style.display = 'none';
         }
 
-        function hideError() {
-            errorDisplay.style.display = 'none';
-        }
+        function hideError() { errorDisplay.style.display = 'none'; }
 
         function showPlaceholderFinal() {
             placeholderMsg.style.display = 'flex';
@@ -645,70 +535,122 @@
             copyHtmlBtn.disabled = false;
         }
 
+        function tieneDiagnostico() {
+            return !!prerequisitosText;
+        }
+
+        function todoListoParaEnsamblar() {
+            const capsOk = plan.length > 0 && plan.every(n => capitulosAceptados[n]);
+            const diagOk = !tieneDiagnostico() || diagnostico.aceptado;
+            return capsOk && diagOk;
+        }
+
         function renderPlan() {
             planList.innerHTML = '';
+
+            // --- Bloque diagnóstico ---
+            if (tieneDiagnostico()) {
+                const sep1 = document.createElement('li');
+                sep1.className = 'separator';
+                sep1.textContent = 'Evaluación diagnóstica';
+                planList.appendChild(sep1);
+
+                const li = document.createElement('li');
+                li.className = 'item-diag';
+                li.textContent = '🩺 Evaluación diagnóstica';
+                const badge = document.createElement('span');
+                badge.className = 'badge';
+                if (diagnostico.aceptado) { li.classList.add('done'); badge.textContent = '✅'; }
+                else if (diagnostico.generado) { badge.textContent = '📝'; }
+                else { badge.textContent = '⏳'; }
+                li.appendChild(badge);
+                li.addEventListener('click', () => seleccionar('DIAGNOSTICO'));
+                if (seleccion === 'DIAGNOSTICO') li.classList.add('active');
+                planList.appendChild(li);
+            }
+
+            // --- Bloque contenidos ---
+            if (plan.length > 0) {
+                const sep2 = document.createElement('li');
+                sep2.className = 'separator';
+                sep2.textContent = 'Contenidos';
+                planList.appendChild(sep2);
+            }
+
             plan.forEach((nombre, idx) => {
                 const li = document.createElement('li');
-                li.textContent = `${idx+1}. ${nombre}`;
-                li.dataset.index = idx;
-                li.dataset.nombre = nombre;
+                li.textContent = `${idx + 1}. ${nombre}`;
 
                 const badge = document.createElement('span');
                 badge.className = 'badge';
-                if (capitulosAceptados[nombre]) {
-                    li.classList.add('done');
-                    badge.textContent = '✅';
-                } else if (capitulos[nombre]) {
-                    badge.textContent = '📝';
-                } else {
-                    badge.textContent = '⏳';
-                }
+                if (capitulosAceptados[nombre]) { li.classList.add('done'); badge.textContent = '✅'; }
+                else if (capitulos[nombre]) { badge.textContent = '📝'; }
+                else { badge.textContent = '⏳'; }
                 li.appendChild(badge);
 
-                li.addEventListener('click', () => {
-                    seleccionarCapitulo(nombre);
-                });
-
-                if (nombre === capituloActual) {
-                    li.classList.add('active');
-                }
+                li.addEventListener('click', () => seleccionar(nombre));
+                if (nombre === seleccion) li.classList.add('active');
                 planList.appendChild(li);
             });
-            capCount.textContent = plan.length;
 
-            const todosAceptados = plan.every(n => capitulosAceptados[n]);
-            ensamblarBtn.disabled = !todosAceptados || plan.length === 0;
+            capCount.textContent = plan.length + (tieneDiagnostico() ? 1 : 0);
+            ensamblarBtn.disabled = !todoListoParaEnsamblar();
 
-            if (capituloActual && plan.includes(capituloActual)) {
-                capTitulo.textContent = capituloActual;
-                const html = capitulos[capituloActual] || '';
+            actualizarPanel();
+        }
+
+        function seleccionar(nombre) {
+            if (nombre !== 'DIAGNOSTICO' && !plan.includes(nombre)) return;
+            seleccion = nombre;
+            renderPlan();
+        }
+
+        function actualizarPanel() {
+            if (seleccion === 'DIAGNOSTICO' && tieneDiagnostico()) {
+                capTitulo.textContent = '🩺 Evaluación diagnóstica';
+                const html = diagnostico.html || '';
                 capCode.value = html;
                 previewIframe.srcdoc = html || '<p style="text-align:center; color:#94a3b8; padding:2rem;">Contenido no generado aún.</p>';
                 generarCapBtn.disabled = false;
-                aceptarCapBtn.disabled = capitulosAceptados[capituloActual] || !capitulos[capituloActual];
-                aplicarComentariosBtn.disabled = !capitulos[capituloActual];
-                capComentarios.disabled = capitulosAceptados[capituloActual];
-            } else {
-                const primerNoAceptado = plan.find(n => !capitulosAceptados[n]);
-                if (primerNoAceptado) {
-                    seleccionarCapitulo(primerNoAceptado);
-                } else if (plan.length > 0) {
-                    seleccionarCapitulo(plan[0]);
-                } else {
-                    capTitulo.textContent = 'Sin capítulos';
-                    capCode.value = '';
-                    previewIframe.srcdoc = '<p style="text-align:center; color:#94a3b8; padding:2rem;">No hay capítulos.</p>';
-                    generarCapBtn.disabled = true;
-                    aceptarCapBtn.disabled = true;
-                    aplicarComentariosBtn.disabled = true;
-                }
+                aceptarCapBtn.disabled = diagnostico.aceptado || !diagnostico.html;
+                aplicarComentariosBtn.disabled = !diagnostico.html;
+                capComentarios.disabled = diagnostico.aceptado;
+                return;
             }
-        }
 
-        function seleccionarCapitulo(nombre) {
-            if (!plan.includes(nombre)) return;
-            capituloActual = nombre;
-            renderPlan();
+            if (seleccion && plan.includes(seleccion)) {
+                capTitulo.textContent = seleccion;
+                const html = capitulos[seleccion] || '';
+                capCode.value = html;
+                previewIframe.srcdoc = html || '<p style="text-align:center; color:#94a3b8; padding:2rem;">Contenido no generado aún.</p>';
+                generarCapBtn.disabled = false;
+                aceptarCapBtn.disabled = capitulosAceptados[seleccion] || !capitulos[seleccion];
+                aplicarComentariosBtn.disabled = !capitulos[seleccion];
+                capComentarios.disabled = capitulosAceptados[seleccion];
+                return;
+            }
+
+            // Nada seleccionado todavía: elegir automáticamente el primer pendiente
+            if (tieneDiagnostico() && !diagnostico.aceptado) {
+                seleccionar('DIAGNOSTICO');
+                return;
+            }
+            const primerNoAceptado = plan.find(n => !capitulosAceptados[n]);
+            if (primerNoAceptado) {
+                seleccionar(primerNoAceptado);
+                return;
+            }
+            if (plan.length > 0) {
+                seleccionar(plan[0]);
+                return;
+            }
+
+            capTitulo.textContent = 'Sin apartados';
+            capCode.value = '';
+            previewIframe.srcdoc = '<p style="text-align:center; color:#94a3b8; padding:2rem;">No hay apartados.</p>';
+            generarCapBtn.disabled = true;
+            aceptarCapBtn.disabled = true;
+            aplicarComentariosBtn.disabled = true;
         }
 
         // Tabs
@@ -757,6 +699,15 @@
             }
         }
 
+        function limpiarHTML(contenido) {
+            let limpio = contenido.replace(/```(?:html)?\s*([\s\S]*?)\s*```/g, (match, code) => code.trim());
+            if (!limpio.trim().match(/^<[a-z]/i)) {
+                const match = limpio.match(/<[a-z][\s\S]*/i);
+                if (match) limpio = match[0];
+            }
+            return limpio;
+        }
+
         // ----------------------------------------------------------------
         // 7. GENERAR PLAN
         // ----------------------------------------------------------------
@@ -765,7 +716,6 @@
                 alert('Primero carga el sílabo en PDF.');
                 return;
             }
-            const titulo = tituloAsignatura.value.trim() || 'Asignatura';
 
             generarPlanBtn.disabled = true;
             setStatus('Generando plan de trabajo...', 10);
@@ -798,16 +748,15 @@
                 plan = nuevosPlan;
                 capitulos = {};
                 capitulosAceptados = {};
-                plan.forEach(n => {
-                    capitulos[n] = '';
-                    capitulosAceptados[n] = false;
-                });
-                capituloActual = plan[0];
+                plan.forEach(n => { capitulos[n] = ''; capitulosAceptados[n] = false; });
+
+                diagnostico = { generado: false, aceptado: false, html: '' };
+                seleccion = tieneDiagnostico() ? 'DIAGNOSTICO' : plan[0];
 
                 workArea.style.display = 'grid';
                 resultArea.style.display = 'none';
                 renderPlan();
-                setStatus(`✅ Plan generado: ${plan.length} capítulos`, 100);
+                setStatus(`✅ Plan generado: ${plan.length} capítulos` + (tieneDiagnostico() ? ' + evaluación diagnóstica' : ''), 100);
             } catch (error) {
                 console.error(error);
                 showError('Error al generar el plan: ' + error.message);
@@ -818,7 +767,72 @@
         }
 
         // ----------------------------------------------------------------
-        // 8. GENERAR CAPÍTULO (HTML)
+        // 8. GENERAR EVALUACIÓN DIAGNÓSTICA
+        // ----------------------------------------------------------------
+        async function generarDiagnostico(comentarios = '') {
+            if (!tieneDiagnostico()) return;
+            if (diagnostico.aceptado) {
+                alert('Este apartado ya fue aceptado.');
+                return;
+            }
+
+            const asignatura = tituloAsignatura.value.trim() || 'la asignatura';
+            generarCapBtn.disabled = true;
+            setStatus('Generando evaluación diagnóstica...', 20);
+
+            try {
+                const instruccionAdicional = comentarios ? `
+              El usuario ha dado los siguientes comentarios sobre una versión anterior de esta evaluación:
+              ${comentarios}
+              Genera una versión revisada teniendo en cuenta estos comentarios.
+            ` : '';
+
+                const prompt = `
+          Genera una EVALUACIÓN DIAGNÓSTICA en HTML autocontenido (sin etiquetas <html>, <head> ni <body>, sin estilos globales) para verificar los conocimientos previos que un estudiante debe dominar ANTES de cursar "${asignatura}".
+
+          Basa TODAS las preguntas exclusivamente en los siguientes conocimientos previos requeridos (no uses temas del contenido del curso, solo de este documento de prerrequisitos):
+          ${prerequisitosText}
+
+          Requisitos obligatorios:
+          - Entre 12 y 18 preguntas de dificultad MEDIA a ALTA (evita preguntas triviales o de simple memorización).
+          - Combina preguntas teóricas conceptuales y preguntas de resolución de problemas/ejercicios.
+          - Cada pregunta debe envolverse en <div class="pregunta-diagnostico">, con el enunciado claro y, si aplica, datos numéricos concretos.
+          - Cada pregunta debe incluir su solución dentro de <div class="solucion">...</div> (oculta por defecto) y un <button class="btn-solucion">Mostrar solución</button> justo antes, para alternar visibilidad (el script de alternancia ya existe fuera de este fragmento, usa exactamente esas clases).
+          - Puedes usar MathJax (\\( ... \\) o \\[ ... \\]) para notación matemática si aplica.
+          - No incluyas título general (<h1>/<h2> con el nombre del apartado); el título ya se añade externamente. Empieza directo con las preguntas.
+
+          ${instruccionAdicional}
+
+          Instrucciones adicionales del usuario: ${customPromptText.value || 'Ninguna.'}
+
+          Devuelve ÚNICAMENTE el fragmento HTML de las preguntas, sin texto fuera del código.
+        `;
+
+                const contenido = await callDeepSeek([
+                    { role: 'system', content: 'Eres un experto en evaluación educativa y diseño de exámenes diagnósticos.' },
+                    { role: 'user', content: prompt }
+                ], 200000);
+
+                diagnostico.html = limpiarHTML(contenido);
+                diagnostico.generado = true;
+                capCode.value = diagnostico.html;
+                previewIframe.srcdoc = diagnostico.html;
+                capComentarios.value = '';
+                aplicarComentariosBtn.disabled = false;
+                aceptarCapBtn.disabled = false;
+                renderPlan();
+                setStatus('✅ Evaluación diagnóstica generada. Revisa y comenta si es necesario.', 100);
+            } catch (error) {
+                console.error(error);
+                showError('Error al generar la evaluación diagnóstica: ' + error.message);
+                setStatus('❌ Error', null);
+            } finally {
+                generarCapBtn.disabled = false;
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // 9. GENERAR CAPÍTULO (HTML)
         // ----------------------------------------------------------------
         async function generarCapitulo(nombre, comentarios = '') {
             if (!nombre || !plan.includes(nombre)) return;
@@ -842,15 +856,16 @@
 
           El capítulo debe ser AUTOCONTENIDO, es decir, no debe incluir etiquetas <html>, <head>, <body>, ni estilos globales. Debe ser un fragmento HTML que se insertará dentro de un <div> contenedor.
 
-          El capítulo debe contener:
-          - Una sección de teoría detallada sobre el tema (con ejemplos).
-          - Al menos 3 ejercicios resueltos paso a paso, con explicaciones claras.
+          El capítulo debe contener, de forma EXTENSA y detallada:
+          - Una sección de teoría detallada sobre el tema (con ejemplos), explicada paso a paso.
+          - Al menos 3 ejercicios resueltos paso a paso, con explicaciones claras de cada paso del procedimiento.
           - Al menos 10 problemas propuestos (dificultad media y alta).
+          - Al menos 4 preguntas teóricas conceptuales (sin cálculo), cada una envuelta en <div class="pregunta-teorica"> con su respuesta oculta en <div class="solucion">...</div> y su propio <button class="btn-solucion">Mostrar solución</button>.
 
-          Usa clases CSS para los ejercicios (por ejemplo, "ejercicio", "solucion" que se mostrará/ocultará con JavaScript).
-          Incluye botones o enlaces para mostrar/ocultar las soluciones de los ejercicios resueltos.
+          Usa las clases CSS "ejercicio" y "solucion" para los ejercicios resueltos, y "propuesto" para los problemas propuestos.
+          Todas las soluciones (ejercicios y preguntas teóricas) deben estar ocultas por defecto y mostrarse/ocultarse con un <button class="btn-solucion">Mostrar solución</button> (el script de alternancia ya existe fuera de este fragmento, usa exactamente esas clases).
 
-          Puedes usar MathJax para ecuaciones (usa \( ... \) o \[ ... \]).
+          Puedes usar MathJax para ecuaciones (usa \\( ... \\) o \\[ ... \\]).
           No incluyas scripts externos, solo el HTML.
 
           ${instruccionAdicional}
@@ -868,13 +883,7 @@
                     { role: 'user', content: prompt }
                 ], 200000);
 
-                // Limpiar posibles bloques de código
-                let limpio = contenido.replace(/```(?:html)?\s*([\s\S]*?)\s*```/g, (match, code) => code.trim());
-                // Si no empieza con un tag HTML, intentar extraer
-                if (!limpio.trim().match(/^<[a-z]/i)) {
-                    const match = limpio.match(/<[a-z][\s\S]*/i);
-                    if (match) limpio = match[0];
-                }
+                const limpio = limpiarHTML(contenido);
 
                 capitulos[nombre] = limpio;
                 capCode.value = limpio;
@@ -894,153 +903,384 @@
         }
 
         // ----------------------------------------------------------------
-        // 9. ACEPTAR CAPÍTULO
+        // 10. GENERAR / REGENERAR según selección
         // ----------------------------------------------------------------
-        function aceptarCapitulo() {
-            if (!capituloActual || !plan.includes(capituloActual)) return;
-            if (!capitulos[capituloActual]) {
-                alert('Primero genera el capítulo.');
-                return;
-            }
-            if (capitulosAceptados[capituloActual]) {
-                alert('Ya está aceptado.');
-                return;
-            }
-            capitulosAceptados[capituloActual] = true;
-            renderPlan();
-            setStatus(`✅ Capítulo "${capituloActual}" aceptado.`, null);
-
-            const siguiente = plan.find(n => !capitulosAceptados[n]);
-            if (siguiente) {
-                seleccionarCapitulo(siguiente);
-            } else {
-                alert('¡Todos los capítulos han sido aceptados! Ahora puedes ensamblar la página completa.');
-                ensamblarBtn.disabled = false;
+        function generarApartadoActual(comentarios = '') {
+            if (seleccion === 'DIAGNOSTICO') {
+                generarDiagnostico(comentarios);
+            } else if (seleccion) {
+                generarCapitulo(seleccion, comentarios);
             }
         }
 
         // ----------------------------------------------------------------
-        // 10. ENSAMBLAR PÁGINA COMPLETA (CORREGIDO)
+        // 11. ACEPTAR APARTADO
+        // ----------------------------------------------------------------
+        function aceptarApartado() {
+            if (seleccion === 'DIAGNOSTICO') {
+                if (!diagnostico.html) { alert('Primero genera la evaluación diagnóstica.'); return; }
+                if (diagnostico.aceptado) { alert('Ya está aceptado.'); return; }
+                diagnostico.aceptado = true;
+                renderPlan();
+                setStatus('✅ Evaluación diagnóstica aceptada.', null);
+
+                const siguiente = plan.find(n => !capitulosAceptados[n]);
+                if (siguiente) { seleccionar(siguiente); }
+                else if (plan.length > 0) {
+                    alert('¡Todo listo! Ahora puedes ensamblar la página completa.');
+                }
+                return;
+            }
+
+            if (!seleccion || !plan.includes(seleccion)) return;
+            if (!capitulos[seleccion]) { alert('Primero genera el capítulo.'); return; }
+            if (capitulosAceptados[seleccion]) { alert('Ya está aceptado.'); return; }
+
+            capitulosAceptados[seleccion] = true;
+            renderPlan();
+            setStatus(`✅ Capítulo "${seleccion}" aceptado.`, null);
+
+            const siguiente = plan.find(n => !capitulosAceptados[n]);
+            if (siguiente) {
+                seleccionar(siguiente);
+            } else if (todoListoParaEnsamblar()) {
+                alert('¡Todos los apartados han sido aceptados! Ahora puedes ensamblar la página completa.');
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // 12. ENSAMBLAR PÁGINA COMPLETA (con ficha institucional y nuevo diseño)
         // ----------------------------------------------------------------
         function ensamblarPagina() {
-            if (plan.some(n => !capitulosAceptados[n])) {
-                alert('No todos los capítulos están aceptados.');
+            if (!todoListoParaEnsamblar()) {
+                alert('No todos los apartados están aceptados todavía.');
                 return;
             }
 
             const titulo = tituloAsignatura.value.trim() || 'Asignatura';
+            const universidad = universidadInput.value.trim() || 'Universidad';
+            const centro = centroInput.value.trim() || '';
+            const telefono = telefonoInput.value.trim() || '';
+            const fecha = new Date().toLocaleDateString('es-EC', { year: 'numeric', month: 'long', day: 'numeric' });
 
-            // Construimos las partes del HTML usando arrays y join para evitar problemas con plantillas literales anidadas
-            var header = [
-                '<header style="background: #1e293b; color: white; padding: 2rem 0; text-align: center; margin-bottom: 2rem;">',
-                '  <h1 style="font-size: 2.5rem;">' + titulo + '</h1>',
-                '  <p style="font-size: 1.2rem; opacity: 0.8;">Libro de trabajo interactivo</p>',
-                '</header>',
-                '<nav style="background: #f1f5f9; padding: 0.8rem 1.5rem; border-radius: 2rem; margin: 0 1rem 2rem 1rem; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">'
-            ];
-            plan.forEach(function(n, idx) {
-                header.push('<a href="#cap' + idx + '" style="text-decoration: none; color: #1e293b; font-weight: 500; padding: 0.3rem 0.8rem; border-radius: 1rem; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">' + n + '</a>');
+            // --- Nav (pestañas tipo carpeta) ---
+            var nav = ['<nav class="tabs-nav">'];
+            if (tieneDiagnostico()) {
+                nav.push('<a href="#diagnostico" class="tab-link diag">🩺 Evaluación diagnóstica</a>');
+            }
+            plan.forEach(function (n, idx) {
+                nav.push('<a href="#cap' + idx + '" class="tab-link">CAP. ' + String(idx + 1).padStart(2, '0') + '</a>');
             });
-            header.push('</nav>');
-            header.push('<main style="max-width: 900px; margin: 0 auto; padding: 0 1rem;">');
-            plan.forEach(function(n, idx) {
-                header.push('<section id="cap' + idx + '" style="margin-bottom: 3rem; padding-top: 1rem; border-top: 2px solid #e2e8f0;">');
-                header.push(capitulos[n] || '');
-                header.push('</section>');
+            nav.push('</nav>');
+
+            // --- Secciones ---
+            var secciones = [];
+
+            if (tieneDiagnostico()) {
+                secciones.push([
+                    '<section id="diagnostico" class="ficha ficha-diag">',
+                    '  <div class="ficha-eyebrow">Punto de partida · Evaluación diagnóstica</div>',
+                    '  <h2 class="ficha-titulo">¿Estás listo para empezar?</h2>',
+                    '  <p class="ficha-intro">Resuelve las siguientes preguntas antes de iniciar el curso. Te permitirán identificar qué conocimientos previos conviene repasar.</p>',
+                    '  <div class="ficha-cuerpo">',
+                    diagnostico.html,
+                    '  </div>',
+                    '</section>'
+                ].join('\n'));
+            }
+
+            plan.forEach(function (n, idx) {
+                secciones.push([
+                    '<section id="cap' + idx + '" class="ficha ficha-cap">',
+                    '  <div class="ficha-eyebrow">Capítulo ' + String(idx + 1).padStart(2, '0') + '</div>',
+                    '  <h2 class="ficha-titulo">' + n + '</h2>',
+                    '  <div class="ficha-cuerpo">',
+                    capitulos[n] || '',
+                    '  </div>',
+                    '</section>'
+                ].join('\n'));
             });
-            header.push('</main>');
-            header.push('<footer style="background: #f8fafc; text-align: center; padding: 1.5rem 0; margin-top: 2rem; color: #64748b; border-top: 1px solid #e2e8f0;">');
-            header.push('<p>Generado automáticamente · ' + new Date().toLocaleDateString() + '</p>');
-            header.push('</footer>');
 
-            var headerHTML = header.join('\n');
+            var seccionesHTML = secciones.join('\n');
 
-            // Ahora construimos el HTML completo
+            // --- Ficha institucional (cabecera) ---
+            var cabecera = [
+                '<header class="ficha-institucional">',
+                '  <div class="tarjeta-id">',
+                '    <div class="tarjeta-eyebrow">Ficha de curso</div>',
+                '    <div class="tarjeta-universidad">' + universidad + '</div>',
+                (centro ? '    <div class="tarjeta-centro">' + centro + '</div>' : ''),
+                '    <div class="tarjeta-asignatura">' + titulo + '</div>',
+                '    <div class="tarjeta-meta">',
+                (telefono ? '      <span>📞 ' + telefono + '</span>' : ''),
+                '      <span>🗓️ ' + fecha + '</span>',
+                '    </div>',
+                '  </div>',
+                '</header>'
+            ].join('\n');
+
+            var pie = [
+                '<footer class="pie-institucional">',
+                '  <div>' + universidad + (centro ? ' · ' + centro : '') + '</div>',
+                (telefono ? '  <div>📞 ' + telefono + '</div>' : ''),
+                '  <div class="pie-generado">Página generada automáticamente · ' + fecha + '</div>',
+                '</footer>'
+            ].join('\n');
+
             var fullHtml = [
                 '<!DOCTYPE html>',
                 '<html lang="es">',
                 '<head>',
-                '  <meta charset="UTF-8">',
-                '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
-                '  <title>' + titulo + ' · Libro de trabajo</title>',
-                '  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>',
-                '  <style>',
-                '    * { box-sizing: border-box; margin: 0; padding: 0; }',
-                '    body { font-family: \'Segoe UI\', Roboto, system-ui, sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; }',
-                '    a { color: #3b82f6; }',
-                '    .ejercicio { background: #f1f5f9; padding: 1rem 1.5rem; border-radius: 0.75rem; margin: 1.5rem 0; border-left: 4px solid #3b82f6; }',
-                '    .ejercicio .solucion { display: none; margin-top: 0.5rem; padding: 0.5rem 1rem; background: #e2e8f0; border-radius: 0.5rem; }',
-                '    .ejercicio .solucion.mostrar { display: block; }',
-                '    .btn-solucion { background: #3b82f6; color: white; border: none; padding: 0.3rem 1rem; border-radius: 2rem; cursor: pointer; font-size: 0.8rem; margin-top: 0.5rem; }',
-                '    .btn-solucion:hover { background: #2563eb; }',
-                '    .propuesto { background: #fef9c3; padding: 1rem 1.5rem; border-radius: 0.75rem; margin: 1rem 0; border-left: 4px solid #f59e0b; }',
-                '    @media (max-width: 640px) { nav { flex-direction: column; align-items: center; } }',
-                '  </style>',
+                '<meta charset="UTF-8">',
+                '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+                '<title>' + titulo + ' · ' + universidad + '</title>',
+                '<link rel="preconnect" href="https://fonts.googleapis.com">',
+                '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+                '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">',
+                '<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></' + 'script>',
+                '<style>',
+                CSS_PAGINA_FINAL,
+                '</style>',
                 '</head>',
                 '<body>',
-                headerHTML,
-                '  <script>',
-                '    document.addEventListener(\'DOMContentLoaded\', function() {',
-                '      document.querySelectorAll(\'.btn-solucion\').forEach(function(btn) {',
-                '        btn.addEventListener(\'click\', function() {',
-                '          var sol = this.parentElement.querySelector(\'.solucion\');',
-                '          if (sol) {',
-                '            sol.classList.toggle(\'mostrar\');',
-                '            this.textContent = sol.classList.contains(\'mostrar\') ? \'Ocultar solución\' : \'Mostrar solución\';',
-                '          }',
-                '        });',
-                '      });',
+                '<div class="grid-fondo"></div>',
+                cabecera,
+                nav.join('\n'),
+                '<main class="contenido-principal">',
+                seccionesHTML,
+                '</main>',
+                pie,
+                '<script>',
+                'document.addEventListener("DOMContentLoaded", function () {',
+                '  document.querySelectorAll(".btn-solucion").forEach(function (btn) {',
+                '    btn.addEventListener("click", function () {',
+                '      var sol = this.parentElement.querySelector(".solucion");',
+                '      if (sol) {',
+                '        sol.classList.toggle("mostrar");',
+                '        this.textContent = sol.classList.contains("mostrar") ? "Ocultar solución" : "Mostrar solución";',
+                '      }',
                 '    });',
-                '  <\/script>',
+                '  });',
+                '});',
+                '</' + 'script>',
                 '</body>',
                 '</html>'
-            ];
+            ].join('\n');
 
-            var fullHtmlString = fullHtml.join('\n');
-            showFinalHTML(fullHtmlString);
+            showFinalHTML(fullHtml);
             resultArea.style.display = 'block';
             setStatus('✅ Página completa ensamblada.', 100);
         }
 
+        // --- Hoja de estilos de la página final (sistema de diseño "ficha de curso") ---
+        const CSS_PAGINA_FINAL = `
+            :root {
+                --paper: #F7F6F1;
+                --ink: #1D2B4F;
+                --amber: #D98E04;
+                --amber-soft: #FBEBCB;
+                --teal: #146C6B;
+                --teal-soft: #DCF3F2;
+                --brick: #B3261E;
+                --grid-line: #E4E0D3;
+            }
+            * { box-sizing: border-box; }
+            body {
+                margin: 0;
+                background: var(--paper);
+                color: var(--ink);
+                font-family: 'Source Serif 4', Georgia, serif;
+                line-height: 1.7;
+                position: relative;
+            }
+            .grid-fondo {
+                position: fixed; inset: 0; z-index: -1; pointer-events: none;
+                background-image: repeating-linear-gradient(
+                    to bottom, transparent, transparent 27px, var(--grid-line) 28px
+                );
+            }
+            h1, h2, h3, .ficha-titulo, .tarjeta-universidad, .tarjeta-asignatura {
+                font-family: 'Space Grotesk', sans-serif;
+                font-weight: 700;
+                letter-spacing: -0.01em;
+            }
+            .eyebrow, .ficha-eyebrow, .tarjeta-eyebrow, .tab-link, .tarjeta-meta, .pie-generado {
+                font-family: 'IBM Plex Mono', monospace;
+            }
+
+            /* --- Ficha institucional / cabecera --- */
+            .ficha-institucional {
+                display: flex; justify-content: center;
+                padding: 3rem 1.5rem 1rem;
+            }
+            .tarjeta-id {
+                position: relative;
+                background: #ffffff;
+                border: 1.5px solid var(--ink);
+                border-radius: 0.4rem;
+                padding: 1.6rem 2.2rem;
+                max-width: 560px; width: 100%;
+                box-shadow: 6px 6px 0 var(--amber-soft);
+            }
+            .tarjeta-id::before {
+                content: ''; position: absolute; top: -1.5px; right: -1.5px;
+                width: 0; height: 0;
+                border-style: solid;
+                border-width: 0 26px 26px 0;
+                border-color: transparent var(--paper) transparent transparent;
+                filter: drop-shadow(-1px 1px 0 var(--ink));
+            }
+            .tarjeta-eyebrow {
+                font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+                color: var(--teal); font-weight: 600; margin-bottom: 0.5rem;
+            }
+            .tarjeta-universidad { font-size: 1.15rem; color: var(--ink); }
+            .tarjeta-centro { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; color: #55607a; margin-top: 0.15rem; }
+            .tarjeta-asignatura { font-size: 1.9rem; margin-top: 0.9rem; color: var(--amber); }
+            .tarjeta-meta {
+                margin-top: 1rem; display: flex; gap: 1.2rem; flex-wrap: wrap;
+                font-size: 0.8rem; color: #55607a;
+            }
+
+            /* --- Navegación tipo pestañas de carpeta --- */
+            .tabs-nav {
+                display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center;
+                padding: 0 1.5rem; margin-bottom: 0;
+            }
+            .tab-link {
+                display: inline-block;
+                text-decoration: none;
+                background: var(--amber); color: white;
+                font-size: 0.75rem; font-weight: 600; letter-spacing: 0.03em;
+                padding: 0.55rem 1.1rem 0.5rem;
+                border-radius: 0.5rem 0.5rem 0 0;
+                position: relative; top: 2px;
+                border: 1.5px solid var(--ink); border-bottom: none;
+            }
+            .tab-link.diag { background: var(--teal); }
+
+            /* --- Contenido principal --- */
+            .contenido-principal {
+                max-width: 880px; margin: 0 auto; padding: 0 1.5rem 3rem;
+            }
+            .ficha {
+                position: relative;
+                background: #ffffff;
+                border: 1.5px solid var(--ink);
+                border-radius: 0.4rem;
+                padding: 2rem 2.2rem;
+                margin: 0 0 2.5rem;
+            }
+            .ficha-diag { border-color: var(--teal); }
+            .ficha-eyebrow {
+                display: inline-block;
+                font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+                font-weight: 600; color: var(--teal);
+                background: var(--teal-soft);
+                padding: 0.2rem 0.7rem; border-radius: 1rem;
+                margin-bottom: 0.8rem;
+            }
+            .ficha-cap .ficha-eyebrow { color: var(--amber); background: var(--amber-soft); }
+            .ficha-titulo { font-size: 1.7rem; margin: 0 0 0.6rem; color: var(--ink); }
+            .ficha-intro { color: #475569; margin-bottom: 1.2rem; }
+            .ficha-cuerpo p { margin: 0 0 1rem; }
+
+            /* --- Ejercicios / preguntas / propuestos --- */
+            .ejercicio, .pregunta-diagnostico, .pregunta-teorica {
+                background: #FBFAF6;
+                border: 1.5px dashed #C7C2AE;
+                border-radius: 0.6rem;
+                padding: 1.1rem 1.4rem;
+                margin: 1.4rem 0;
+            }
+            .pregunta-diagnostico { border-color: var(--teal); background: var(--teal-soft); }
+            .pregunta-teorica { border-color: var(--amber); background: var(--amber-soft); }
+            .propuesto {
+                background: #FFF6E5;
+                border-left: 4px solid var(--amber);
+                border-radius: 0.4rem;
+                padding: 0.9rem 1.3rem;
+                margin: 1rem 0;
+            }
+            .solucion {
+                display: none;
+                margin-top: 0.8rem;
+                padding: 0.8rem 1.1rem;
+                background: #ffffff;
+                border-left: 3px solid var(--ink);
+                border-radius: 0.4rem;
+            }
+            .solucion.mostrar { display: block; }
+            .btn-solucion {
+                font-family: 'IBM Plex Mono', monospace;
+                background: var(--ink); color: white;
+                border: none; padding: 0.4rem 1rem;
+                border-radius: 1.2rem; cursor: pointer;
+                font-size: 0.75rem; margin-top: 0.6rem;
+            }
+            .btn-solucion:hover { background: #14213d; }
+
+            /* --- Pie institucional --- */
+            .pie-institucional {
+                text-align: center; padding: 2rem 1rem 2.5rem;
+                color: #55607a; font-size: 0.85rem;
+                border-top: 1.5px solid var(--grid-line);
+            }
+            .pie-generado {
+                font-size: 0.7rem; color: #94a3b8; margin-top: 0.4rem;
+            }
+
+            @media (max-width: 640px) {
+                .tarjeta-asignatura { font-size: 1.5rem; }
+                .ficha { padding: 1.4rem 1.3rem; }
+            }
+        `;
+
         // ----------------------------------------------------------------
-        // 11. EVENT LISTENERS
+        // 13. EVENT LISTENERS
         // ----------------------------------------------------------------
         generarPlanBtn.addEventListener('click', generarPlan);
 
-        generarCapBtn.addEventListener('click', function() {
-            if (capituloActual) {
-                generarCapitulo(capituloActual, '');
-            }
+        generarCapBtn.addEventListener('click', function () {
+            generarApartadoActual('');
         });
 
-        aplicarComentariosBtn.addEventListener('click', function() {
-            if (capituloActual) {
-                var comentarios = capComentarios.value.trim();
-                if (!comentarios) {
-                    alert('Escribe algún comentario o corrección.');
-                    return;
-                }
-                generarCapitulo(capituloActual, comentarios);
-            }
+        aplicarComentariosBtn.addEventListener('click', function () {
+            const comentarios = capComentarios.value.trim();
+            if (!comentarios) { alert('Escribe algún comentario o corrección.'); return; }
+            generarApartadoActual(comentarios);
         });
 
-        aceptarCapBtn.addEventListener('click', aceptarCapitulo);
+        aceptarCapBtn.addEventListener('click', aceptarApartado);
 
         ensamblarBtn.addEventListener('click', ensamblarPagina);
 
-        clearBtn.addEventListener('click', function() {
+        clearBtn.addEventListener('click', function () {
+            universidadInput.value = '';
+            centroInput.value = '';
+            telefonoInput.value = '';
             tituloAsignatura.value = '';
+
             syllabusFile.value = '';
             syllabusInfo.textContent = 'Ningún archivo seleccionado';
             syllabusStatus.textContent = 'Sin cargar';
             syllabusStatus.className = 'status-badge';
             syllabusText = '';
+
+            prerequisitosFile.value = '';
+            prerequisitosInfo.textContent = 'Ningún archivo seleccionado';
+            prerequisitosStatus.textContent = 'Sin cargar';
+            prerequisitosStatus.className = 'status-badge';
+            prerequisitosText = '';
+
             customPromptText.value = '';
             plan = [];
             capitulos = {};
             capitulosAceptados = {};
-            capituloActual = null;
+            diagnostico = { generado: false, aceptado: false, html: '' };
+            seleccion = null;
             paginaCompleta = '';
+
             workArea.style.display = 'none';
             resultArea.style.display = 'none';
             showPlaceholderFinal();
@@ -1050,20 +1290,22 @@
             hideError();
         });
 
-        downloadHtmlBtn.addEventListener('click', function() {
+        downloadHtmlBtn.addEventListener('click', function () {
             if (!paginaCompleta) return;
+            var nombreArchivo = (tituloAsignatura.value.trim() || 'pagina_curso')
+                .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') + '.html';
             var blob = new Blob([paginaCompleta], { type: 'text/html' });
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
             a.href = url;
-            a.download = 'pagina_completa.html';
+            a.download = nombreArchivo;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         });
 
-        copyHtmlBtn.addEventListener('click', async function() {
+        copyHtmlBtn.addEventListener('click', async function () {
             if (!paginaCompleta) return;
             try {
                 await navigator.clipboard.writeText(paginaCompleta);
@@ -1074,10 +1316,10 @@
         });
 
         // ----------------------------------------------------------------
-        // 12. INICIO
+        // 14. INICIO
         // ----------------------------------------------------------------
         showPlaceholderFinal();
-        setStatus('Listo, carga el sílabo y genera el plan.', null);
+        setStatus('Listo. Completa los datos, carga los documentos y genera el plan.', null);
     </script>
 
 </body>
